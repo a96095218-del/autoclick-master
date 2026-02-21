@@ -25,11 +25,6 @@ export function useBotSessions() {
     withdraw: botEngine.withdraw.bind(botEngine),
     withdrawAll: botEngine.withdrawAll.bind(botEngine),
     registerAccount: botEngine.registerAccount.bind(botEngine),
-    // Spam register methods
-    startSpamRegister: botEngine.startSpamRegister.bind(botEngine),
-    stopSpamRegister: botEngine.stopSpamRegister.bind(botEngine),
-    isSpamRegisterRunning: botEngine.isSpamRegisterRunning.bind(botEngine),
-    getSpamRegisterStats: botEngine.getSpamRegisterStats.bind(botEngine),
   };
 }
 

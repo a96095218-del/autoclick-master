@@ -14,12 +14,6 @@ class NanoBotEngine {
   private logs: LogEntry[] = [];
   private logListeners: Set<Listener> = new Set();
   
-  // Spam Register state
-  private spamRegisterRunning = false;
-  private spamRegisterStop = false;
-  private registeredCount = 0;
-  private failedRegCount = 0;
-  
   public globalStats: GlobalStats = {
     totalEarnedNano: 0,
     totalClicks: 0,
@@ -399,97 +393,6 @@ class NanoBotEngine {
     }
     return null;
   }
-
-  // ============ SPAM REGISTER ============
-  async startSpamRegister(count: number, referralCode?: string, delayMs: number = 100) {
-    if (this.spamRegisterRunning) {
-      this.addLog('System', 'Spam register already running!', 'error');
-      return;
-    }
-
-    this.spamRegisterRunning = true;
-    this.spamRegisterStop = false;
-    this.registeredCount = 0;
-    this.failedRegCount = 0;
-    this.notify();
-
-    this.addLog('System', `🚀 Starting spam register: ${count} accounts`, 'info');
-
-    for (let i = 0; i < count && !this.spamRegisterStop; i++) {
-      try {
-        const token = await this.registerAccount(referralCode);
-        if (token) {
-          this.registeredCount++;
-          // Simpan token ke session otomatis
-          this.addSession(token, referralCode || 'rafiaha');
-        } else {
-          this.failedRegCount++;
-        }
-
-        // Progress log setiap 5 register
-        if ((i + 1) % 5 === 0) {
-          this.addLog('System', `Registered: ${this.registeredCount}, Failed: ${this.failedRegCount}`, 'info');
-        }
-
-        this.notify();
-      } catch (e) {
-        this.failedRegCount++;
-      }
-
-      // Delay antar register (default 100ms)
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-    }
-
-    this.spamRegisterRunning = false;
-    this.addLog(
-      'System',
-      `✅ Spam register complete: ${this.registeredCount} success, ${this.failedRegCount} failed`,
-      'success'
-    );
-    this.notify();
-  }
-
-  stopSpamRegister() {
-    this.spamRegisterStop = true;
-    this.addLog('System', 'Spam register stopped', 'warning');
-    this.notify();
-  }
-
-  isSpamRegisterRunning() {
-    return this.spamRegisterRunning;
-  }
-
-  getSpamRegisterStats() {
-    return {
-      running: this.spamRegisterRunning,
-      registered: this.registeredCount,
-      failed: this.failedRegCount,
-    };
-  }
-
-  private addSession(token: string, label: string) {
-    const session: TokenSession = {
-      id: crypto.randomUUID(),
-      token,
-      label: `${label}-${this.registeredCount}`,
-      isRunning: false,
-      clicks: 0,
-      clicksSinceCaptcha: 0,
-      totalEarned: 0,
-      currentNano: 0,
-      connectedWs: 0,
-      wsCount: 1,
-      clickSpeed: 100,
-      captchaRequired: false,
-      withdrawAddress: '',
-      withdrawThreshold: 500,
-      autoWithdraw: false,
-      lastWithdrawTime: null,
-    };
-    this.sessions.set(session.id, session);
-  }
-  // ============ END SPAM REGISTER ============
-
 }
 
 // Singleton
