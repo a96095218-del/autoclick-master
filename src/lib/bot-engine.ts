@@ -198,9 +198,9 @@ class NanoBotEngine {
       this.addLog(session.label, `WS #${index + 1} connected`, 'success');
       this.notify();
 
-      // Start clicking
+      // Start clicking - skip if captcha required
       const interval = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) {
+        if (ws.readyState === WebSocket.OPEN && !session.captchaRequired) {
           ws.send('c');
         }
       }, session.clickSpeed);
@@ -226,8 +226,16 @@ class NanoBotEngine {
           session.currentNano = msg.currentNano || session.currentNano;
           session.totalEarned = msg.totalEarned || session.totalEarned;
           session.clicksSinceCaptcha = msg.clicksSinceCaptcha || session.clicksSinceCaptcha;
+          const wasCaptcha = session.captchaRequired;
           session.captchaRequired = msg.captchaRequired || false;
           session.clicks++;
+          
+          // Log captcha state changes
+          if (session.captchaRequired && !wasCaptcha) {
+            this.addLog(session.label, '🛑 CAPTCHA required! Clicking paused. Solve at thenanobutton.com', 'error');
+          } else if (!session.captchaRequired && wasCaptcha) {
+            this.addLog(session.label, '✅ Captcha cleared! Clicking resumed.', 'success');
+          }
           
           // Auto-withdraw check
           if (session.autoWithdraw && session.withdrawAddress && session.currentNano >= session.withdrawThreshold) {

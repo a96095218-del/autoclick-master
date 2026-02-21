@@ -87,8 +87,16 @@ export function TokenCard({ sessionId }: { sessionId: string }) {
       </div>
 
       {session.captchaRequired && (
-        <div className="mt-2 text-xs text-neon-yellow bg-neon-yellow/10 px-2 py-1 rounded">
-          ⚠️ Captcha required
+        <div className="mt-2 text-xs text-neon-red bg-neon-red/10 px-2 py-1 rounded flex items-center justify-between">
+          <span>🛑 Captcha required — clicking paused</span>
+          <a
+            href={`https://thenanobutton.com/${session.referralCode || ''}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-neon-cyan hover:text-neon-green transition-colors ml-2"
+          >
+            Solve →
+          </a>
         </div>
       )}
 
