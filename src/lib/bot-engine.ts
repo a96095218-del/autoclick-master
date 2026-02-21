@@ -198,13 +198,28 @@ class NanoBotEngine {
       this.addLog(session.label, `WS #${index + 1} connected`, 'success');
       this.notify();
 
-      // Start clicking - skip if captcha required
+      // Start clicking - send probe click even during captcha to detect when it's cleared
       const interval = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN && !session.captchaRequired) {
+        if (ws.readyState === WebSocket.OPEN) {
           ws.send('c');
         }
-      }, session.clickSpeed);
+      }, session.captchaRequired ? 5000 : session.clickSpeed);
       intervals[index] = interval;
+
+      // When captcha state changes, restart interval with appropriate speed
+      const checkCaptchaChange = setInterval(() => {
+        if (intervals[index] !== interval) { clearInterval(checkCaptchaChange); return; }
+        const currentIsCaptcha = session.captchaRequired;
+        const currentSpeed = currentIsCaptcha ? 5000 : session.clickSpeed;
+        // Restart interval if speed needs to change
+        clearInterval(intervals[index]);
+        const newInterval = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send('c');
+          }
+        }, currentSpeed);
+        intervals[index] = newInterval;
+      }, 3000);
     };
 
     ws.onmessage = (event) => {
