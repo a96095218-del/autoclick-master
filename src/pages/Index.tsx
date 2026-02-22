@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useBotSessions, useBotLogs } from '@/hooks/use-bot';
 import { TokenCard } from '@/components/TokenCard';
 import { LogPanel } from '@/components/LogPanel';
-import { Play, Square, Plus, Download, Zap, Users, TrendingUp, Target, UserPlus, Upload } from 'lucide-react';
+import { Play, Square, Plus, Download, Zap, Users, TrendingUp, Target, UserPlus, Upload, Trash2, Settings } from 'lucide-react';
 
 const GOAL = 10_000_000;
 
@@ -10,6 +10,7 @@ const Index = () => {
   const {
     sessions, globalStats, totalClicks, totalEarned, progress,
     addToken, startAll, stopAll, withdrawAll, registerAccount, importTokens,
+    removeAll, setAllWithdrawAddress, setAllReferralCode,
   } = useBotSessions();
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -17,6 +18,9 @@ const Index = () => {
   const [newLabel, setNewLabel] = useState('');
   const [newRef, setNewRef] = useState('');
   const [registerRef, setRegisterRef] = useState('');
+  const [globalAddress, setGlobalAddress] = useState('');
+  const [globalRef, setGlobalRef] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleAddToken = () => {
     if (!newToken.trim()) return;
@@ -132,17 +136,74 @@ const Index = () => {
         >
           <Download className="w-3.5 h-3.5" /> WD All
         </button>
-        <div className="ml-auto flex items-center gap-2">
-          <label className="text-xs text-muted-foreground">Register Ref:</label>
-          <input
-            type="text"
-            value={registerRef}
-            onChange={(e) => setRegisterRef(e.target.value)}
-            placeholder="CsXN2w"
-            className="bg-muted border border-border rounded px-2 py-1 text-xs w-24 focus:border-primary outline-none"
-          />
-        </div>
+        <button
+          onClick={() => { if (confirm('Remove ALL tokens?')) removeAll(); }}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-destructive/10 text-destructive text-xs font-semibold hover:bg-destructive/20 transition-colors border border-destructive/20"
+        >
+          <Trash2 className="w-3.5 h-3.5" /> Remove All
+        </button>
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted text-muted-foreground text-xs font-semibold hover:text-foreground transition-colors border border-border"
+        >
+          <Settings className="w-3.5 h-3.5" /> Settings
+        </button>
       </div>
+
+      {/* Global Settings */}
+      {showSettings && (
+        <div className="mb-6 border border-border rounded-lg bg-card p-4 space-y-3">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Global Settings</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">WD Address (all tokens)</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={globalAddress}
+                  onChange={(e) => setGlobalAddress(e.target.value)}
+                  placeholder="nano_..."
+                  className="flex-1 bg-muted border border-border rounded px-2 py-1.5 text-xs focus:border-primary outline-none font-mono"
+                />
+                <button
+                  onClick={() => { if (globalAddress.trim()) setAllWithdrawAddress(globalAddress.trim()); }}
+                  className="px-3 py-1.5 rounded bg-neon-cyan/10 text-neon-cyan text-xs font-semibold hover:bg-neon-cyan/20 transition-colors"
+                >
+                  Set All
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Referral Code (all tokens)</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={globalRef}
+                  onChange={(e) => setGlobalRef(e.target.value)}
+                  placeholder="CsXN2w"
+                  className="flex-1 bg-muted border border-border rounded px-2 py-1.5 text-xs focus:border-primary outline-none"
+                />
+                <button
+                  onClick={() => { if (globalRef.trim()) setAllReferralCode(globalRef.trim()); }}
+                  className="px-3 py-1.5 rounded bg-neon-purple/10 text-neon-purple text-xs font-semibold hover:bg-neon-purple/20 transition-colors"
+                >
+                  Set All
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Register Ref</label>
+              <input
+                type="text"
+                value={registerRef}
+                onChange={(e) => setRegisterRef(e.target.value)}
+                placeholder="CsXN2w"
+                className="w-full bg-muted border border-border rounded px-2 py-1.5 text-xs focus:border-primary outline-none"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Token Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">

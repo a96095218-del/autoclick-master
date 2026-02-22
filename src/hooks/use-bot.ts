@@ -27,6 +27,9 @@ export function useBotSessions() {
     registerAccount: botEngine.registerAccount.bind(botEngine),
     forceRefresh: botEngine.forceRefresh.bind(botEngine),
     importTokens: botEngine.importTokens.bind(botEngine),
+    removeAll: botEngine.removeAll.bind(botEngine),
+    setAllWithdrawAddress: botEngine.setAllWithdrawAddress.bind(botEngine),
+    setAllReferralCode: botEngine.setAllReferralCode.bind(botEngine),
   };
 }
 
