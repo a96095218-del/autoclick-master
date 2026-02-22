@@ -327,6 +327,31 @@ class NanoBotEngine {
     });
   }
 
+  removeAll() {
+    const ids = Array.from(this.sessions.keys());
+    ids.forEach(id => this.removeToken(id));
+    this.addLog('System', `🗑️ Removed all ${ids.length} tokens`, 'warning');
+  }
+
+  setAllWithdrawAddress(address: string) {
+    this.sessions.forEach(s => {
+      s.withdrawAddress = address;
+      s.autoWithdraw = true;
+    });
+    this.saveToStorage();
+    this.notify();
+    this.addLog('System', `📬 Set WD address for all ${this.sessions.size} tokens`, 'success');
+  }
+
+  setAllReferralCode(code: string) {
+    this.sessions.forEach(s => {
+      s.referralCode = code;
+    });
+    this.saveToStorage();
+    this.notify();
+    this.addLog('System', `🔗 Set referral code "${code}" for all tokens`, 'success');
+  }
+
   async withdraw(id: string, manual = false) {
     const session = this.sessions.get(id);
     if (!session) return;

@@ -95,21 +95,13 @@ export function TokenCard({ sessionId }: { sessionId: string }) {
 
       {session.captchaRequired && (
         <div className="mt-2 text-xs text-neon-red bg-neon-red/10 px-2 py-1 rounded flex items-center justify-between">
-          <span>🛑 Captcha required — clicking paused</span>
+          <span>🛑 Captcha — probe setiap 5s, akan auto-resume saat clear</span>
           <button
             onClick={() => forceRefresh(session.id)}
             className="underline text-neon-yellow hover:text-neon-green transition-colors ml-2"
           >
-            Reset
+            Force Reset
           </button>
-          <a
-            href={`https://thenanobutton.com/?token=${session.token}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline text-neon-cyan hover:text-neon-green transition-colors ml-2"
-          >
-            Solve →
-          </a>
         </div>
       )}
 
