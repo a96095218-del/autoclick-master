@@ -11,6 +11,7 @@ const Index = () => {
     sessions, globalStats, totalClicks, totalEarned, progress,
     addToken, startAll, stopAll, withdrawAll, registerAccount, importTokens,
     removeAll, setAllWithdrawAddress, setAllReferralCode,
+    bulkRegister, stopBulkRegister, bulkRegisterState,
   } = useBotSessions();
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -21,6 +22,10 @@ const Index = () => {
   const [globalAddress, setGlobalAddress] = useState('');
   const [globalRef, setGlobalRef] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [bulkCount, setBulkCount] = useState(10);
+  const [bulkRef, setBulkRef] = useState('');
+  const [bulkAddress, setBulkAddress] = useState('');
+  const [showBulkModal, setShowBulkModal] = useState(false);
 
   const handleAddToken = () => {
     if (!newToken.trim()) return;
@@ -110,7 +115,13 @@ const Index = () => {
           onClick={handleRegister}
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-neon-purple/10 text-neon-purple text-xs font-semibold hover:bg-neon-purple/20 transition-colors border border-neon-purple/20"
         >
-          <UserPlus className="w-3.5 h-3.5" /> Register New
+          <UserPlus className="w-3.5 h-3.5" /> Register 1
+        </button>
+        <button
+          onClick={() => setShowBulkModal(true)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-neon-purple/10 text-neon-purple text-xs font-semibold hover:bg-neon-purple/20 transition-colors border border-neon-purple/20"
+        >
+          <Users className="w-3.5 h-3.5" /> Bulk Register
         </button>
         <button
           onClick={startAll}
@@ -274,6 +285,104 @@ const Index = () => {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Register Modal */}
+      {showBulkModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md">
+            <h2 className="font-display font-bold text-lg mb-4 text-neon-purple">
+              {bulkRegisterState.running ? '⏳ Registering...' : '🚀 Bulk Register'}
+            </h2>
+
+            {bulkRegisterState.running ? (
+              <div className="space-y-4">
+                <div className="text-sm text-center">
+                  <span className="text-neon-green font-semibold">{bulkRegisterState.registered}</span>
+                  <span className="text-muted-foreground"> success / </span>
+                  <span className="text-neon-red font-semibold">{bulkRegisterState.failed}</span>
+                  <span className="text-muted-foreground"> failed / </span>
+                  <span className="font-semibold">{bulkRegisterState.total}</span>
+                  <span className="text-muted-foreground"> total</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-neon-purple to-neon-cyan rounded-full transition-all"
+                    style={{ width: `${((bulkRegisterState.registered + bulkRegisterState.failed) / bulkRegisterState.total) * 100}%` }}
+                  />
+                </div>
+                <button
+                  onClick={() => stopBulkRegister()}
+                  className="w-full py-2 rounded-lg bg-neon-red/10 text-neon-red font-semibold text-sm hover:bg-neon-red/20 transition-colors"
+                >
+                  Stop
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Number of accounts (10-50)</label>
+                  <input
+                    type="number"
+                    value={bulkCount}
+                    onChange={(e) => setBulkCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 10)))}
+                    className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:border-primary outline-none"
+                    min={1} max={50}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Referral Code</label>
+                  <input
+                    type="text"
+                    value={bulkRef}
+                    onChange={(e) => setBulkRef(e.target.value)}
+                    placeholder="CsXN2w"
+                    className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:border-primary outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">WD Address (optional, auto-enable)</label>
+                  <input
+                    type="text"
+                    value={bulkAddress}
+                    onChange={(e) => setBulkAddress(e.target.value)}
+                    placeholder="nano_..."
+                    className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:border-primary outline-none font-mono"
+                  />
+                </div>
+                <div className="flex gap-2 mt-5">
+                  <button
+                    onClick={() => {
+                      bulkRegister(bulkCount, {
+                        referralCode: bulkRef.trim() || undefined,
+                        autoStart: true,
+                        withdrawAddress: bulkAddress.trim() || undefined,
+                      });
+                    }}
+                    className="flex-1 py-2 rounded-lg bg-neon-purple text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
+                  >
+                    Start ({bulkCount} accounts)
+                  </button>
+                  <button
+                    onClick={() => setShowBulkModal(false)}
+                    className="px-4 py-2 rounded-lg bg-muted text-muted-foreground text-sm hover:text-foreground transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!bulkRegisterState.running && (
+              <button
+                onClick={() => setShowBulkModal(false)}
+                className="mt-3 w-full text-xs text-muted-foreground hover:text-foreground transition-colors text-center"
+              >
+                Close
+              </button>
+            )}
           </div>
         </div>
       )}

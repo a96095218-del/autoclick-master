@@ -13,6 +13,13 @@ class NanoBotEngine {
   private listeners: Set<Listener> = new Set();
   private logs: LogEntry[] = [];
   private logListeners: Set<Listener> = new Set();
+
+  // Bulk register state
+  private _bulkRegisterRunning = false;
+  private _bulkRegisterStop = false;
+  private _bulkRegistered = 0;
+  private _bulkFailed = 0;
+  private _bulkTotal = 0;
   
   public globalStats: GlobalStats = {
     totalEarnedNano: 0,
@@ -468,6 +475,70 @@ class NanoBotEngine {
       this.addLog('System', `Register failed: ${e.message}`, 'error');
     }
     return null;
+  }
+
+  // ============ BULK REGISTER ============
+  async bulkRegister(count: number, options: { referralCode?: string; autoStart?: boolean; withdrawAddress?: string; delayMs?: number }) {
+    if (this._bulkRegisterRunning) {
+      this.addLog('System', 'Bulk register already running!', 'error');
+      return;
+    }
+
+    const { referralCode, autoStart = true, withdrawAddress, delayMs = 300 } = options;
+    this._bulkRegisterRunning = true;
+    this._bulkRegisterStop = false;
+    this._bulkRegistered = 0;
+    this._bulkFailed = 0;
+    this._bulkTotal = count;
+    this.notify();
+
+    this.addLog('System', `🚀 Bulk register: creating ${count} accounts...`, 'info');
+
+    for (let i = 0; i < count && !this._bulkRegisterStop; i++) {
+      try {
+        const token = await this.registerAccount(referralCode);
+        if (token) {
+          const session = this.addToken(token, `Bulk-${this._bulkRegistered + 1}`, referralCode);
+          if (withdrawAddress) {
+            this.updateTokenConfig(session.id, { withdrawAddress, autoWithdraw: true });
+          }
+          if (autoStart) {
+            this.startToken(session.id);
+          }
+          this._bulkRegistered++;
+        } else {
+          this._bulkFailed++;
+        }
+      } catch {
+        this._bulkFailed++;
+      }
+
+      if ((i + 1) % 5 === 0) {
+        this.addLog('System', `Progress: ${this._bulkRegistered} ok, ${this._bulkFailed} failed / ${count}`, 'info');
+      }
+
+      this.notify();
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+
+    this._bulkRegisterRunning = false;
+    this.addLog('System', `✅ Bulk register done: ${this._bulkRegistered} success, ${this._bulkFailed} failed`, 'success');
+    this.notify();
+  }
+
+  stopBulkRegister() {
+    this._bulkRegisterStop = true;
+    this.addLog('System', '⏹ Bulk register stopped', 'warning');
+    this.notify();
+  }
+
+  getBulkRegisterState() {
+    return {
+      running: this._bulkRegisterRunning,
+      registered: this._bulkRegistered,
+      failed: this._bulkFailed,
+      total: this._bulkTotal,
+    };
   }
 }
 

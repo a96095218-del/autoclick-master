@@ -30,6 +30,9 @@ export function useBotSessions() {
     removeAll: botEngine.removeAll.bind(botEngine),
     setAllWithdrawAddress: botEngine.setAllWithdrawAddress.bind(botEngine),
     setAllReferralCode: botEngine.setAllReferralCode.bind(botEngine),
+    bulkRegister: botEngine.bulkRegister.bind(botEngine),
+    stopBulkRegister: botEngine.stopBulkRegister.bind(botEngine),
+    bulkRegisterState: botEngine.getBulkRegisterState(),
   };
 }
 
