@@ -379,6 +379,57 @@ class NanoBotEngine {
     await Promise.allSettled(promises);
   }
 
+  forceRefresh(id: string) {
+    const session = this.sessions.get(id);
+    if (!session) return;
+    
+    this.addLog(session.label, '🔄 Force refresh: reconnecting all WS & resetting captcha...', 'info');
+    
+    // Stop everything
+    const wasRunning = session.isRunning;
+    this.stopToken(id);
+    
+    // Reset captcha state
+    session.captchaRequired = false;
+    session.clicksSinceCaptcha = 0;
+    this.saveToStorage();
+    this.notify();
+    
+    // Restart if was running
+    if (wasRunning) {
+      setTimeout(() => this.startToken(id), 500);
+    }
+    
+    this.addLog(session.label, '✅ Force refresh complete', 'success');
+  }
+
+  importTokens(tokensText: string, defaultAddress?: string) {
+    const lines = tokensText.split(/[\n,]+/).map(l => l.trim()).filter(Boolean);
+    let added = 0;
+    for (const line of lines) {
+      // Support format: "token" or "token label" or just UUID
+      const parts = line.split(/\s+/);
+      const token = parts[0];
+      if (!token || token.length < 10) continue;
+      
+      // Skip if already exists
+      const exists = Array.from(this.sessions.values()).some(s => s.token === token);
+      if (exists) {
+        this.addLog('System', `Token ${token.slice(0, 8)}... already exists, skipping`, 'warning');
+        continue;
+      }
+      
+      const label = parts[1] || `Import-${this.sessions.size + 1}`;
+      const session = this.addToken(token, label);
+      if (defaultAddress) {
+        this.updateTokenConfig(session.id, { withdrawAddress: defaultAddress, autoWithdraw: true });
+      }
+      added++;
+    }
+    this.addLog('System', `📥 Imported ${added} tokens from ${lines.length} lines`, 'success');
+    return added;
+  }
+
   async registerAccount(referralCode?: string): Promise<string | null> {
     try {
       const ref = referralCode || '';

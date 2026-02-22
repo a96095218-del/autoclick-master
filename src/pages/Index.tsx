@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useBotSessions, useBotLogs } from '@/hooks/use-bot';
 import { TokenCard } from '@/components/TokenCard';
 import { LogPanel } from '@/components/LogPanel';
-import { Play, Square, Plus, Download, Zap, Users, TrendingUp, Target, UserPlus } from 'lucide-react';
+import { Play, Square, Plus, Download, Zap, Users, TrendingUp, Target, UserPlus, Upload } from 'lucide-react';
 
 const GOAL = 10_000_000;
 
 const Index = () => {
   const {
     sessions, globalStats, totalClicks, totalEarned, progress,
-    addToken, startAll, stopAll, withdrawAll, registerAccount,
+    addToken, startAll, stopAll, withdrawAll, registerAccount, importTokens,
   } = useBotSessions();
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -34,6 +34,20 @@ const Index = () => {
       setShowAddModal(true);
     }
   };
+
+  const handleImportFile = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.txt,.csv,.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const text = await file.text();
+      importTokens(text);
+    };
+    input.click();
+  };
+
 
   const runningCount = sessions.filter(s => s.isRunning).length;
   const totalWs = sessions.reduce((a, s) => a + s.connectedWs, 0);
@@ -105,6 +119,12 @@ const Index = () => {
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-neon-red/10 text-neon-red text-xs font-semibold hover:bg-neon-red/20 transition-colors border border-neon-red/20"
         >
           <Square className="w-3.5 h-3.5" /> Stop All
+        </button>
+        <button
+          onClick={handleImportFile}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-neon-yellow/10 text-neon-yellow text-xs font-semibold hover:bg-neon-yellow/20 transition-colors border border-neon-yellow/20"
+        >
+          <Upload className="w-3.5 h-3.5" /> Import File
         </button>
         <button
           onClick={withdrawAll}

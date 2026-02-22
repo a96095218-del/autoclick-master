@@ -25,6 +25,8 @@ export function useBotSessions() {
     withdraw: botEngine.withdraw.bind(botEngine),
     withdrawAll: botEngine.withdrawAll.bind(botEngine),
     registerAccount: botEngine.registerAccount.bind(botEngine),
+    forceRefresh: botEngine.forceRefresh.bind(botEngine),
+    importTokens: botEngine.importTokens.bind(botEngine),
   };
 }
 

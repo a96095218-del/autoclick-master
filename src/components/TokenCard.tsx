@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useBotSessions } from '@/hooks/use-bot';
-import { Play, Square, Plus, Trash2, Settings, Zap, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Play, Square, Trash2, Download, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
 export function TokenCard({ sessionId }: { sessionId: string }) {
-  const { sessions, startToken, stopToken, removeToken, updateTokenConfig, withdraw } = useBotSessions();
+  const { sessions, startToken, stopToken, removeToken, updateTokenConfig, withdraw, forceRefresh } = useBotSessions();
   const [expanded, setExpanded] = useState(false);
   const session = sessions.find(s => s.id === sessionId);
   if (!session) return null;
@@ -49,6 +49,13 @@ export function TokenCard({ sessionId }: { sessionId: string }) {
             <Download className="w-3.5 h-3.5" />
           </button>
           <button
+            onClick={() => forceRefresh(session.id)}
+            className="p-1.5 rounded bg-neon-yellow/10 text-neon-yellow hover:bg-neon-yellow/20 transition-colors"
+            title="Force Refresh (reconnect WS & reset captcha)"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+          <button
             onClick={() => setExpanded(!expanded)}
             className="p-1.5 rounded bg-muted text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -89,8 +96,14 @@ export function TokenCard({ sessionId }: { sessionId: string }) {
       {session.captchaRequired && (
         <div className="mt-2 text-xs text-neon-red bg-neon-red/10 px-2 py-1 rounded flex items-center justify-between">
           <span>🛑 Captcha required — clicking paused</span>
+          <button
+            onClick={() => forceRefresh(session.id)}
+            className="underline text-neon-yellow hover:text-neon-green transition-colors ml-2"
+          >
+            Reset
+          </button>
           <a
-            href={`https://thenanobutton.com/${session.referralCode || ''}`}
+            href={`https://thenanobutton.com/?token=${session.token}`}
             target="_blank"
             rel="noopener noreferrer"
             className="underline text-neon-cyan hover:text-neon-green transition-colors ml-2"
